@@ -2,7 +2,10 @@ package com.vobi.bank.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,30 +57,73 @@ public class CustomerServiceImpl implements CustomerService {
 			throw new Exception("El customer ya existe");
 		}
 		
-		return null;
+		return customerRepository.save(entity);
 	}
 
 	@Override
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public Customer update(Customer entity) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+
+		if(entity == null) {
+			throw new Exception("El customer es nulo");
+		}
+		
+		validate(entity);
+		
+		if(!customerRepository.existsById(entity.getCustId())) {
+			throw new Exception("El customer no existe");
+		}
+		
+		return customerRepository.save(entity);
 	}
 
 	@Override
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public void delete(Customer entity) throws Exception {
-		// TODO Auto-generated method stub
 		
+		if(entity == null) {
+			throw new Exception("El customer es nulo");
+		}
+		
+		if(entity.getCustId() == null) {
+			throw new Exception("El customer id es nulo");
+		}
+		
+		if(!customerRepository.existsById(entity.getCustId())) {
+			throw new Exception("El customer no existe");
+		}
+		
+		findById(entity.getCustId()).ifPresent(customer->{
+			if(customer.getAccounts() != null && !customer.getAccounts().isEmpty())
+				throw new RuntimeException("El customer tiene cuentas asociadas");
+			
+			if(customer.getRegisteredAccounts() != null && !customer.getRegisteredAccounts().isEmpty())
+				throw new RuntimeException("El customer tiene cuentas registradas asociadas");
+		});
+		
+		customerRepository.deleteById(entity.getCustId());
 	}
 
 	@Override
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public void deleteById(Integer id) throws Exception {
-		// TODO Auto-generated method stub
+
+		if(id == null) {
+			throw new Exception("El id es nulo");
+		}
 		
+		Customer entity = new Customer();
+		entity.setCustId(id);
+		delete(entity);
 	}
 
 	@Override
 	public void validate(Customer entity) throws Exception {
-		// TODO Auto-generated method stub
+		
+		Set<ConstraintViolation<Customer>> constraintViolations = validator.validate(entity);
+		if(!constraintViolations.isEmpty()) {
+			throw new ConstraintViolationException(constraintViolations);
+		}
 		
 	}
 
