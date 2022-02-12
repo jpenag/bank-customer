@@ -2,7 +2,10 @@ package com.vobi.bank.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -10,6 +13,7 @@ import com.vobi.bank.domain.Customer;
 import com.vobi.bank.domain.DocumentType;
 
 @SpringBootTest
+@TestMethodOrder(OrderAnnotation.class)
 class CustomerRepositoryIT {
 
 	@Autowired
@@ -19,11 +23,13 @@ class CustomerRepositoryIT {
 	DocumentTypeRepository documentTypeRepository;
 	
 	@Test
+	@Order(1)
 	void debeValidarLasDependencias() {
 		assertNotNull(customerRepository);
 		assertNotNull(documentTypeRepository);
 	}
 	
+	@Order(2)
 	@Test
 	void debeCrearUnCustomer() {
 		//Arrange
@@ -50,5 +56,38 @@ class CustomerRepositoryIT {
 		//Assert
 		assertNotNull(customer, "El customer es nulo, no se pudo grabar");
 	}
+	
+	@Order(3)
+	@Test
+	void debeModifiarUnCustomer() {
+		//Arrange
+		Integer idCustomer=14836554;
+		Customer customer=null;
+		
+		customer=customerRepository.findById(idCustomer).get();
+		customer.setEnable("N");
+		
+		//Act
+		customer=customerRepository.save(customer);
+		
+		//Assert
+		assertNotNull(customer, "El customer es nulo, no se pudo modificar");
+	}
 
+	@Order(3)
+	@Test
+	void debeBorrarUnCustomer() {
+		//Arrange
+		Integer idCustomer=14836554;
+		Customer customer=null;
+		
+		customer=customerRepository.findById(idCustomer).get();
+		customer.setEnable("N");
+		
+		//Act
+		customer=customerRepository.delete(customer);
+		
+		//Assert
+		assertNotNull(customer, "El customer es nulo, no se pudo modificar");
+	}
 }
