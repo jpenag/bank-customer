@@ -2,6 +2,7 @@ package com.vobi.bank.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -14,8 +15,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.vobi.bank.domain.Customer;
 import com.vobi.bank.domain.DocumentType;
 
+import lombok.extern.slf4j.Slf4j;
+
 @SpringBootTest
 @TestMethodOrder(OrderAnnotation.class)
+@Slf4j
 class CustomerRepositoryIT {
 
 	@Autowired
@@ -81,17 +85,32 @@ class CustomerRepositoryIT {
 	void debeBorrarUnCustomer() {
 		//Arrange
 		Integer idCustomer=14836554;
-		Customer customer=null;
+		Customer customer = null;
 		Optional<Customer> customerOptions=null;
 		
 		assertTrue(customerRepository.findById(idCustomer).isPresent(), "No se encontró el customer");
 		
-		customer=customerRepository.findById(idCustomer).get();
+		customer = customerRepository.findById(idCustomer).get();
 		//Act
 		customerRepository.delete(customer);
-		customerOptions=customerRepository.findById(idCustomer);
+		customerOptions = customerRepository.findById(idCustomer);
 		
 		//Assert
 		assertFalse(customerOptions.isPresent(), "No se pudo borrar el customer");
+	}
+	
+	@Order(5)
+	@Test
+	void debeConsultarTodosLosCustomer() {
+		//Arrange
+		List<Customer> customers = null;
+
+		//Act
+		customers = customerRepository.findAll();
+		
+		customers.forEach(customer->log.info(customer.getName()));
+		
+		//Assert
+		assertFalse(customers.isEmpty(), "No pudo consultar todos los customers");
 	}
 }
